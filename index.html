@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASLab - ASL Learning Platform</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Slab:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- MediaPipe Hands CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="assets/logos/ASLab.svg" alt="ASLab Logo" class="logo-image">
+            <img src="assets/logos/ASLab-2.svg" alt="ASLab Sign Language" class="logo-image-asl">
+        </div>
+        <button id="connectHardware" class="btn-hardware">CONNECT HARDWARE</button>
+    </header>
+
+    <main class="container">
+        <!-- TOP LEFT: Sign Information -->
+        <section class="grid-item top-left">
+            <div class="sign-info-content">
+                <div class="sign-name-display">
+                    <h3 id="signName" class="sign-name-large">-</h3>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">dictionary definition</span>
+                    <p class="info-text" id="definition">Select a handshape button to begin</p>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">sign description</span>
+                    <p class="info-text" id="description">Click one of the buttons below (1, A, B, S, or 5)</p>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">handshape</span>
+                    <p class="info-text" id="handshape">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOP RIGHT: Reference Video (Instructor) -->
+        <section class="grid-item top-right">
+            <div class="video-container">
+                <video id="referenceVideo" class="reference-video" loop autoplay muted playsinline></video>
+                <div class="video-placeholder" id="referencePlaceholder">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 7l-7 5 7 5V7z"></path>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    <p>Click a handshape button below</p>
+                </div>
+                <div class="success-overlay" id="successOverlay">
+                    <div class="success-content">
+                        <div class="success-icon">🎉</div>
+                        <h2>Perfect!</h2>
+                        <p>You completed the sign correctly!</p>
+                        <button id="tryAnotherBtn" class="btn-try-another">Try Another Sign</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM LEFT: Handshape Buttons (1, A, B, S, 5) -->
+        <section class="grid-item bottom-left">
+            <div class="hand-icons" id="handIcons">
+                <div class="hand-icon" data-handshape="1">
+                    <div class="hand-svg-wrapper">
+                        <img src="assets/handshapes/1.svg" alt="1 handshape" class="hand-svg">
+                    </div>
+                    <span class="handshape-label">1</span>
+                </div>
+                <div class="hand-icon" data-handshape="A">
+                    <div class="hand-svg-wrapper">
+                        <img src="assets/handshapes/A.svg" alt="A handshape" class="hand-svg">
+                    </div>
+                    <span class="handshape-label">A</span>
+                </div>
+                <div class="hand-icon" data-handshape="B">
+                    <div class="hand-svg-wrapper">
+                        <img src="assets/handshapes/B.svg" alt="B handshape" class="hand-svg">
+                    </div>
+                    <span class="handshape-label">B</span>
+                </div>
+                <div class="hand-icon" data-handshape="S">
+                    <div class="hand-svg-wrapper">
+                        <img src="assets/handshapes/S.svg" alt="S handshape" class="hand-svg">
+                    </div>
+                    <span class="handshape-label">S</span>
+                </div>
+                <div class="hand-icon" data-handshape="5">
+                    <div class="hand-svg-wrapper">
+                        <img src="assets/handshapes/5.svg" alt="5 handshape" class="hand-svg">
+                    </div>
+                    <span class="handshape-label">5</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM RIGHT: User Webcam with MediaPipe -->
+        <section class="grid-item bottom-right">
+            <div class="video-container">
+                <video id="webcam" class="webcam-video" autoplay playsinline></video>
+                <canvas id="output" class="output-canvas"></canvas>
+                <div class="video-placeholder" id="webcamPlaceholder">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <p>Click "Start Camera" to begin</p>
+                </div>
+            </div>
+            <button id="startCamera" class="btn-camera">Start Camera</button>
+        </section>
+    </main>
+
+    <footer class="feedback-bar">
+        <div id="feedbackMessage" class="feedback-message">
+            Model feedback
+        </div>
+    </footer>
+
+    <div class="debug-console" id="debugConsole"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
