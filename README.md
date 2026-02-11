@@ -15,7 +15,7 @@ An interactive American Sign Language (ASL) learning platform that uses computer
 ## Quick Start
 
 1. **Open the Application**
-   - Open `index.html` in a modern web browser (Chrome, Edge, or Safari recommended)
+   - Open `file:///Users/maimostafa/Documents/GitHub/ASLab/index.html` in a modern web browser (Chrome, Edge, or Safari recommended)
    - No server or build process required!
 
 2. **Start Learning**
