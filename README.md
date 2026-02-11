@@ -62,7 +62,7 @@ This ensures users are actually performing signs with proper motion, not just ho
 ## Browser Compatibility
 
 - ✅ Chrome/Edge (recommended)
-- ✅ Safari (macOS/iOS)
+- ✅ Safari (macOS/iOS) (note that Safari does not support the optional hardware integration as it does not support the Web Serial API)
 - ⚠️ Firefox (MediaPipe support varies)
 
 ## File Structure
@@ -104,7 +104,8 @@ To add new signs to the database:
     { 
         video: 'assets/videos/handshape/filename.mov', 
         name: 'Sign Name', 
-        definition: 'Definition text' 
+        definition: 'Definition text',
+        description: 'Description of how to do the sign' 
     },
     // ... more signs
 ]
