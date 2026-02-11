@@ -206,6 +206,9 @@ class ASLabApp {
             video.addEventListener('loadedmetadata', () => {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
+                // Ensure canvas is visible and has proper context
+                canvas.style.display = 'block';
+                this.log(`Canvas dimensions set: ${canvas.width}x${canvas.height}`);
             });
             
             this.camera = new Camera(this.elements.webcam, {
@@ -229,6 +232,16 @@ class ASLabApp {
         const canvas = this.elements.output;
         const ctx = canvas.getContext('2d');
         
+        // Ensure canvas has dimensions set
+        if (canvas.width === 0 || canvas.height === 0) {
+            const video = this.elements.webcam;
+            if (video.videoWidth && video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            }
+        }
+        
+        ctx.save();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         this.leftHandLandmarks = null;
@@ -260,6 +273,8 @@ class ASLabApp {
                 this.elements.feedbackMessage.textContent = 'No hands detected. Please position your hands clearly in the camera view.';
             }
         }
+        
+        ctx.restore();
     }
     
     drawHandLandmarks(ctx, landmarks, handIndex = 0) {
