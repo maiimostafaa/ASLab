@@ -393,6 +393,27 @@ header {
     color: var(--accent-color);
 }
 
+.hand-icon.hardware-pressed {
+    animation: hardwarePress 0.3s ease;
+}
+
+@keyframes hardwarePress {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.hand-icon.hardware-pressed .hand-svg-wrapper {
+    box-shadow: 0 0 20px rgba(59, 127, 191, 0.8);
+    border-color: var(--accent-color);
+}
+
 /* BOTTOM RIGHT: Camera Controls */
 .bottom-right {
     display: flex;

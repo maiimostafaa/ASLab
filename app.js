@@ -361,6 +361,19 @@ class ASLabApp {
         });
     }
     
+    flashHandshapeButton(handshape) {
+        const icons = this.elements.handIcons.querySelectorAll('.hand-icon');
+        icons.forEach(icon => {
+            if (icon.dataset.handshape === handshape) {
+                // Add press animation
+                icon.classList.add('hardware-pressed');
+                setTimeout(() => {
+                    icon.classList.remove('hardware-pressed');
+                }, 300);
+            }
+        });
+    }
+    
     analyzeHands(leftHand, rightHand) {
         if (!this.currentSign) return;
         
@@ -743,20 +756,70 @@ class ASLabApp {
     }
     
     async connectHardware() {
+        // Check if Web Serial API is supported
+        if (!navigator.serial) {
+            alert('Web Serial API is not supported in this browser.\n\nPlease use:\n• Google Chrome\n• Microsoft Edge\n• Opera\n\nSafari does not support Web Serial API.');
+            this.log('Web Serial API not supported', 'error');
+            return;
+        }
+        
         try {
             this.log('Requesting serial port...');
             this.serialPort = await navigator.serial.requestPort();
-            await this.serialPort.open({ baudRate: 9600 });
             
-            this.elements.connectHardware.disabled = true;
-            this.elements.connectHardware.textContent = 'Hardware Connected';
+            // Try to open with CircuitPython default settings
+            this.log('Opening serial port with baudRate: 115200...');
+            await this.serialPort.open({ 
+                baudRate: 115200,
+                dataBits: 8,
+                stopBits: 1,
+                parity: 'none',
+                bufferSize: 255,
+                flowControl: 'none'
+            });
             
-            this.log('Serial port connected');
+            this.elements.connectHardware.textContent = 'Disconnect Hardware';
+            this.elements.connectHardware.onclick = () => this.disconnectHardware();
+            
+            this.log('Serial port connected successfully');
             this.readSerialData();
             
         } catch (error) {
             this.log(`Serial connection error: ${error.message}`, 'error');
-            alert('Could not connect to hardware. Please check connection.');
+            
+            // Provide specific error messages
+            if (error.name === 'NotFoundError') {
+                alert('No serial port selected.\n\nClick "Connect Hardware" again and select your CircuitPython board from the list.');
+            } else if (error.name === 'InvalidStateError' || error.message.includes('Failed to open')) {
+                alert('⚠️ Serial port is already in use!\n\n✅ SOLUTION:\n1. Close Thonny, Mu Editor, or any serial monitor\n2. Unplug your board from USB\n3. Wait 3 seconds\n4. Plug it back in\n5. Try connecting again\n\nThe port cannot be shared between multiple apps.');
+            } else if (error.message.includes('aborted')) {
+                // User cancelled the dialog, just log it
+                this.log('Connection cancelled by user');
+            } else {
+                alert(`Could not connect to hardware.\n\nError: ${error.message}\n\nTroubleshooting:\n• Unplug and replug your board\n• Close all other serial apps\n• Try a different USB cable\n• Restart your browser`);
+            }
+        }
+    }
+    
+    async disconnectHardware() {
+        try {
+            if (this.serialPort && this.serialPort.readable) {
+                const reader = this.serialPort.readable.getReader();
+                await reader.cancel();
+                reader.releaseLock();
+            }
+            
+            if (this.serialPort) {
+                await this.serialPort.close();
+                this.serialPort = null;
+            }
+            
+            this.elements.connectHardware.textContent = 'Connect Hardware';
+            this.elements.connectHardware.onclick = () => this.connectHardware();
+            
+            this.log('Hardware disconnected');
+        } catch (error) {
+            this.log(`Disconnect error: ${error.message}`, 'error');
         }
     }
     
@@ -774,9 +837,11 @@ class ASLabApp {
                 const match = text.match(/Pin\s+(\d+)/i);
                 if (match) {
                     const pinNumber = match[1];
-                    const pinMap = {'3': '1', '5': '5', '4': 'A', '2': 'S', '1': 'B'};
+                    const pinMap = {'3': '1', '5': 'A', '7': 'B', '9': 'S', '8': '5'};
                     if (pinMap[pinNumber]) {
-                        this.loadRandomSign(pinMap[pinNumber]);
+                        const handshape = pinMap[pinNumber];
+                        this.loadRandomSign(handshape);
+                        this.flashHandshapeButton(handshape);
                     }
                 }
             }
